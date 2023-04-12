@@ -109,7 +109,6 @@ contract WillProtocol is Ownable {
 
     function submitExecutorSignature(address testator) public {
         require(isExecutor(msg.sender, testator), "Caller is not an executor");
-
         executorSignatures[testator][msg.sender] = true;
 
         uint256 approvals = countApprovals(testator);
