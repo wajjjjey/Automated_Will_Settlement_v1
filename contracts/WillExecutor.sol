@@ -8,7 +8,7 @@ import "/home/ubuntuwaj/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.
 import "/home/ubuntuwaj/node_modules/@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "/home/ubuntuwaj/node_modules/@openzeppelin/contracts/access/Ownable.sol";
 
-contract WillExecutor2 is ERC721, Ownable {
+contract WillExecutor is ERC721, Ownable {
     address public willProtocol;
     WillProtocol private _willProtocol;
 
