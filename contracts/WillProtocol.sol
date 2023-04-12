@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 
 import "./TransferContract.sol";
 import "/home/ubuntuwaj/node_modules/@openzeppelin/contracts/access/Ownable.sol";
+import "/home/ubuntuwaj/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./WillExecutor.sol";
 
 contract WillProtocol is Ownable {
@@ -15,7 +16,6 @@ contract WillProtocol is Ownable {
         uint256[] tokenAmounts;
         address[] tokenAddresses;
         address[] tokenRecipients;
-        uint256[] tokenIds;
         uint256[] nftTokenIds;
         address[] nftRecipients;
     }
@@ -33,7 +33,7 @@ contract WillProtocol is Ownable {
     /// On deployment, creates 1x WillExecutor contract & assigns ownership to deployer of this contract
     constructor() {
         _willExecutor = new WillExecutor();
-        _willExecutor.transferOwnership(msg.sender);
+        _willExecutor.transferOwnership(WillProtocol);
     }
 
     /// Returns the instance of Will Executor contract for interaction through this contract
@@ -46,7 +46,6 @@ contract WillProtocol is Ownable {
         uint256[] memory _tokenAmounts,
         address[] memory _tokenAddresses,
         address[] memory _tokenRecipients,
-        uint256[] memory _tokenIds,
         uint256[] memory _nftTokenURIs,
         string[] memory _nftTokenMetadata,
         address[] memory _nftRecipients
@@ -62,10 +61,17 @@ contract WillProtocol is Ownable {
             tokenAmounts: _tokenAmounts,
             tokenAddresses: _tokenAddresses,
             tokenRecipients: _tokenRecipients,
-            tokenIds: _tokenIds,
             nftTokenIds: _nftTokenIds,
             nftRecipients: _nftRecipients
         });
+
+        // Preapprove ERC-20 token transfers
+        for (uint256 i = 0; i < _tokenAddresses.length; i++) {
+            IERC20(_tokenAddresses[i]).approve(
+                address(_willExecutor),
+                _tokenAmounts[i]
+            );
+        }
 
         // Mint NFTs and pre-approve their transfers
         for (uint256 i = 0; i < _nftTokenIds.length; i++) {
