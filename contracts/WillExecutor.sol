@@ -21,10 +21,10 @@ contract WillExecutor is ERC721, Ownable {
 
     function isReadyToExecute(address testator) public view returns (bool) {
         uint256 approvals = _willProtocol.countApprovals(testator);
-        uint256 requiredApprovals = _willProtocol
-            .wills[testator]
-            .executors
-            .length - 1;
+        (uint256 executorsCount, ) = _willProtocol.getWillExecutorData(
+            testator
+        );
+        uint256 requiredApprovals = executorsCount - 1;
         return approvals >= requiredApprovals;
     }
 
@@ -67,9 +67,7 @@ contract WillExecutor is ERC721, Ownable {
     function executeTransfers(address testator) public onlyOwner {
         require(isReadyToExecute(testator), "Not enough sigantures");
 
-        address transferContractAddress = _willProtocol
-            .wills[testator]
-            .transferContract;
+        address transferContractAddress = address(transferContracts[testator]);
         TransferContract transferContract = TransferContract(
             transferContractAddress
         );

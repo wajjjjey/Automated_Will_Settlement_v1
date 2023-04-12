@@ -145,4 +145,13 @@ contract WillProtocol is Ownable {
         }
         return false;
     }
+
+    // Custom getter function for WillExecutor
+
+    function getWillExecutorData(
+        address testator
+    ) public view returns (uint256, address) {
+        Will storage will = wills[testator];
+        return will.executors.length;
+    }
 }
