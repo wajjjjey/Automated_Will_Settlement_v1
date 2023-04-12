@@ -16,7 +16,6 @@ contract WillProtocol is Ownable {
         uint256[] tokenAmounts;
         address[] tokenAddresses;
         address[] tokenRecipients;
-        uint256[] nftTokenIds;
         address[] nftRecipients;
     }
 
@@ -30,10 +29,10 @@ contract WillProtocol is Ownable {
     mapping(address => WillExecutor) public executorContract;
     mapping(address => mapping(address => bool)) public executorSignatures;
 
-    /// On deployment, creates 1x WillExecutor contract & assigns ownership to deployer of this contract
+    /// On deployment, creates 1x WillExecutor contract & assigns ownership to WillProtocol
     constructor() {
         _willExecutor = new WillExecutor();
-        _willExecutor.transferOwnership(WillProtocol);
+        _willExecutor.transferOwnership(msg.sender);
     }
 
     /// Returns the instance of Will Executor contract for interaction through this contract
@@ -46,22 +45,21 @@ contract WillProtocol is Ownable {
         uint256[] memory _tokenAmounts,
         address[] memory _tokenAddresses,
         address[] memory _tokenRecipients,
-        uint256[] memory _nftTokenURIs,
-        string[] memory _nftTokenMetadata,
+        string[] memory assetNames,
+        string[] memory assetDescriptions,
         address[] memory _nftRecipients
     ) public {
         require(
             wills[msg.sender].isConfirmed == false,
             "Will already exists and confirmed"
         );
-        uint256[] memory _nftTokenIds = new uint256[](_nftTokenURIs.length);
         wills[msg.sender] = Will({
             isConfirmed: false,
             executors: _executors,
             tokenAmounts: _tokenAmounts,
             tokenAddresses: _tokenAddresses,
             tokenRecipients: _tokenRecipients,
-            nftTokenIds: _nftTokenIds,
+            nftTokenIds: new uint256[](0),
             nftRecipients: _nftRecipients
         });
 
@@ -74,10 +72,15 @@ contract WillProtocol is Ownable {
         }
 
         // Mint NFTs and pre-approve their transfers
-        for (uint256 i = 0; i < _nftTokenIds.length; i++) {
-            willExecutor.mintNFT(msg.sender, _nftTokenMetadata[i]);
+        uint256[] memory mintedTokenIds = willExecutor.mintNFTs(
+            msg.sender,
+            assetNames,
+            assetDescriptions
+        );
+
+        for (uint256 i = 0; i < mintedTokenIds.length; i++) {
             willExecutor.preApproveNFTTransfer(
-                _nftTokenIds[i],
+                mintedTokenIds[i],
                 _nftRecipients[i]
             );
         }

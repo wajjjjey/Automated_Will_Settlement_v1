@@ -4,13 +4,16 @@ pragma solidity ^0.8.0;
 
 import "./WillProtocol.sol";
 import "./TransferContract.sol";
+import "/home/ubuntuwaj/node_modules/@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "/home/ubuntuwaj/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "/home/ubuntuwaj/node_modules/@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "/home/ubuntuwaj/node_modules/@openzeppelin/contracts/access/Ownable.sol";
 
-contract WillExecutor is ERC721, Ownable {
+contract WillExecutor is ERC721URIStorage, Ownable {
     address public willProtocol;
     WillProtocol private _willProtocol;
+
+    /// NFT Token ID counter (subject to change/complication)
+    uint256 private _currentTokenId;
 
     mapping(address => TransferContract) public transferContracts;
 
@@ -55,12 +58,33 @@ contract WillExecutor is ERC721, Ownable {
         return address(newTransferContract);
     }
 
-    /// Mint NFTs based on the info provided by testator to main contract
-    function mintNFTs(address to, uint256[] memory nftTokenIds) public {
+    /// Mint NFTs based on the info provided by testator to main contract. Increase token counter on mint
+    function mintNFTs(
+        address to,
+        string[] memory assetNames,
+        string[] memory assetDescriptions
+    ) public returns (uint256[] memory) {
         require(msg.sender == willProtocol, "Only WillProtocol can mint NFTs");
-        for (uint256 i = 0; i < nftTokenIds.length; i++) {
-            _safeMint(to, nftTokenIds[i]);
+        uint256[] memory mintedTokenIds = new uint256[](assetNames.length);
+        for (uint256 i = 0; i < assetNames.length; i++) {
+            uint256 newTokenId = _currentTokenId;
+            _safeMint(to, newTokenId);
+            _setTokenURI(
+                newTokenId,
+                _generateTokenURI(assetNames[i], assetDescriptions[i])
+            );
+            mintedTokenIds[i] = newTokenId;
+            _currentTokenId++;
         }
+        return mintedTokenIds;
+    }
+
+    /// Function to serve metadata in required JSON format. IPFS integration
+    function _generateTokenURI(
+        string memory assetNames,
+        string memory assetDescriptions
+    ) private pure returns (string memory) {
+        return string(abi.encodePacked());
     }
 
     /// Execute transfers in transfer contract when enough signatures received to main contract
