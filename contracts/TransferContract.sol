@@ -3,9 +3,10 @@
 pragma solidity ^0.8.0;
 
 import "./WillProtocol.sol";
-import "/home/ubuntuwaj/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "/home/ubuntuwaj/node_modules/@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "/home/ubuntuwaj/node_modules/@openzeppelin/contracts/access/Ownable.sol";
+import "./WillExecutor.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract TransferContract is Ownable {
     address[] private _tokenAddresses;
@@ -39,9 +40,11 @@ contract TransferContract is Ownable {
 
     function executeTransfers() external onlyOwner {
         require(!_executed, "Transfers already executed");
+
         WillProtocol willProtocol = WillProtocol(owner());
+        WillExecutor willExecutor = willProtocol.willExecutor();
         require(
-            willProtocol.executeWill(address(this)),
+            willExecutor.isReadyToExecute(owner()),
             "Not enough executor signatures"
         );
 

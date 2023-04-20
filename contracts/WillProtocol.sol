@@ -3,8 +3,8 @@
 pragma solidity ^0.8.0;
 
 import "./TransferContract.sol";
-import "/home/ubuntuwaj/node_modules/@openzeppelin/contracts/access/Ownable.sol";
-import "/home/ubuntuwaj/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./WillExecutor.sol";
 
 contract WillProtocol is Ownable {
@@ -17,6 +17,7 @@ contract WillProtocol is Ownable {
         address[] tokenAddresses;
         address[] tokenRecipients;
         address[] nftRecipients;
+        uint256[] nftTokenIds;
     }
 
     struct Confirmation {
@@ -72,14 +73,14 @@ contract WillProtocol is Ownable {
         }
 
         // Mint NFTs and pre-approve their transfers
-        uint256[] memory mintedTokenIds = willExecutor.mintNFTs(
+        uint256[] memory mintedTokenIds = willExecutor().mintNFTs(
             msg.sender,
             assetNames,
             assetDescriptions
         );
 
         for (uint256 i = 0; i < mintedTokenIds.length; i++) {
-            willExecutor.preApproveNFTTransfer(
+            willExecutor().preApproveNFTTransfer(
                 mintedTokenIds[i],
                 _nftRecipients[i]
             );
@@ -153,7 +154,7 @@ contract WillProtocol is Ownable {
 
     function getWillExecutorData(
         address testator
-    ) public view returns (uint256, address) {
+    ) public view returns (uint256) {
         Will storage will = wills[testator];
         return will.executors.length;
     }
